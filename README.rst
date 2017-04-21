@@ -24,7 +24,7 @@ Quick start
 
 4. Start the development server and visit http://127.0.0.1:8000/admin/ to add a business number with its settings and IPN details. The following is an example::
 
-   .. image:: https://lh5.googleusercontent.com/ENdJiMlUNgj39Bd0kE9ToTR6PlQ52LfFjeWCRad9sXXyovnndQj_VxVhqqN0D7rldNUCeJnh=w2880-h1476
+   .. image:: http://res.cloudinary.com/dqothee9u/image/upload/v1492782379/change_business2_fpxlso.png
 
 
 
