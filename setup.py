@@ -14,7 +14,7 @@ setup(
     include_package_data=True,
     license='MIT License',
     description='Django app consuming M-Pesa APIs',
-    install_requires=['Django'],
+    install_requires=['Django', 'suds-jurko', 'djcelery'],
     long_description=README,
     url='http://http://pythonhosted.org/django-mpesapy/',
     author='James Wanderi',

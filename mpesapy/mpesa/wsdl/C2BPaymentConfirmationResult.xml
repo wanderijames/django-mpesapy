@@ -1,0 +1,8 @@
+<soapenv:Envelope
+	xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+	xmlns:c2b="http://cps.huawei.com/cpsinterface/c2bpayment">
+	<soapenv:Header/>
+	<soapenv:Body>
+		<c2b:C2BPaymentConfirmationResult>C2B Payment Transaction 1234560000007031 result received.</c2b:C2BPaymentConfirmationResult>
+	</soapenv:Body>
+</soapenv:Envelope>
