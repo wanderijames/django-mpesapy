@@ -22,5 +22,17 @@ Quick start
 
 3. Run `python manage.py migrate` to create the mpesapy models.
 
-4. Start the development server and visit http://127.0.0.1:8000/admin/
-   to see some of the M-Pesa transactions that have been pushed to you by Safaricom (you'll need the Admin app enabled).
+4. Start the development server and visit http://127.0.0.1:8000/admin/ to add a business number with its settings and IPN details. The following is an example::
+
+   .. image:: https://lh5.googleusercontent.com/ENdJiMlUNgj39Bd0kE9ToTR6PlQ52LfFjeWCRad9sXXyovnndQj_VxVhqqN0D7rldNUCeJnh=w2880-h1476
+
+
+
+Things to remember
+-------------------
+1. For M-Pesa G2 API they will need to whitelist your server IP.
+2. Sometimes the **register_url** doesn't work, so send them the URL to register. Your URL would be something like the following::
+
+    https://host/mpesapy/v2/900900/validate/
+
+    https://host/mpesapy/v2/900900/confirm/
