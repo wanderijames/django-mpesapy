@@ -3,14 +3,19 @@ import json
 
 
 class URLFetchException(Exception):
+    """Custom execption for this"""
     pass
 
 
 class URLFetch:
 
-    def __init__(self, endpoint, http_method="POST",
-                 header={'Content-Type': 'application/x-www-form-urlencoded'},
-                 data={}, **kwargs):
+    def __init__(
+            self,
+            endpoint: str,
+            http_method: str = "POST",
+            header: dict = {},
+            data: dict = {},
+            **kwargs):
         """Initializes wih data for URL call
 
         :param endpoint: URL that will be called
@@ -23,6 +28,10 @@ class URLFetch:
         :type data: dict or str
 
         """
+        default_header = {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        }
+        header = header or default_header
         self.http_method = http_method
         self.endpoint = endpoint
         self.content_type = header.get("Content-Type")
@@ -65,5 +74,6 @@ class URLFetch:
         except (urllib.error.URLError, Exception) as err:
             raise URLFetchException(str(err))
 
-    def get_header(self, header_key):
+    def get_header(self, header_key: str) -> str:
+        """Get header value by key"""
         return self.response_headers.getheader(header_key)
