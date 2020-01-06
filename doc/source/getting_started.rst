@@ -15,7 +15,10 @@ March 6, 2007. By may 2014 it had deposit value of KES 87,686,000,000.00 and tra
 They have public API's to be used by its merchants. Curently they support C2C, C2B, B2C and B2B mode of payments. In C2B they have 'Pay Bill' and
 'Lipa na Mpesa'. The user/customer is required to enter both the 'business number' and his/her 'account number' while using the former and
 only the 'business nmber' in the latter.
+
 This Django app will consume the C2B, B2C and B2B API's. This version  will expose the firt one.
+
+Has been tested with Django 3+. Versions prior to 1.1.3 has been tested with Django==1.9.
 
 .. _installing_app:
 

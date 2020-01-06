@@ -45,7 +45,7 @@ def authenticate(url_biz, xml_biz, user=None, password=None):
                 return
         return business
     except mdl.Business.DoesNotExist:
-        print "does not exist"
+        print("does not exist")
         pass
 
 
@@ -60,13 +60,13 @@ def c2b_validation(request, *args, **kwargs):
     Expects 'business' in kwargs.
 
     """
-    body = request.body
+    body = request.body.decode()
     tasks.log_request.delay(request.path, body)
     c2b = cb.C2B()
     try:
         data = c2b.validation_request(body)
-    except Exception, e:
-        logger.exception(str(e))
+    except Exception as err:
+        logger.exception(str(err))
         logger.info(body)
         return response(
             c2b.validation_result(
@@ -108,13 +108,13 @@ def c2b_confirmation(request, *args, **kwargs):
     Expects 'business' in kwargs.
 
     """
-    body = request.body
+    body = request.body.decode()
     tasks.log_request.delay(request.path, body)
     c2b = cb.C2B()
     try:
         data = c2b.confirmation_request(body)
-    except Exception, e:
-        logger.exception(str(e))
+    except Exception as err:
+        logger.exception(str(err))
         logger.info(body)
         return response(
             c2b.confirmation_result("000000"))
@@ -139,8 +139,12 @@ def c2b_confirmation(request, *args, **kwargs):
                     "reference_id": data.get("reference_id", "")}
             ).save(created=data.get("trans_time"))
             result_code = rec.code
-            tasks.ipn.apply_async((data, biz.extra_data()),
-                                  task_id=data["trans_id"])
+            tasks.ipn.apply_async(
+                (data, biz.extra_data()),
+                task_id=data["trans_id"],
+                max_retries=3, soft_time_limit=30,
+                time_limit=90, countdown=1
+            )
         except IntegrityError:
             pass
     return HttpResponse(

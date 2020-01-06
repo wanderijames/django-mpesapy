@@ -1,5 +1,4 @@
 import urllib
-import urllib2
 import json
 
 
@@ -45,13 +44,13 @@ class URLFetch:
 
         """
         if self.http_method == "GET":
-            request = urllib2.Request("{}?{}".format(
+            request = urllib.request.Request("{}?{}".format(
                 self.endpoint, self.relay), headers={})
         else:
-            request = urllib2.Request(
+            request = urllib.request.Request(
                 self.endpoint, self.relay, headers=self.header)
         try:
-            start_req = urllib2.urlopen(request)
+            start_req = urllib.request.urlopen(request)
             self.response_headers = start_req.info()
             response_code = int(start_req.code)
             response_body = start_req.read()
@@ -61,10 +60,10 @@ class URLFetch:
                 return json.loads(response_body)
             raise URLFetchException(
                 "{}: {}".format(response_code, response_body))
-        except urllib2.HTTPError as e:
+        except urllib.error.HTTPError as e:
             raise URLFetchException(str(e))
-        except (urllib2.URLError, Exception), e:
-            raise URLFetchException(str(e))
+        except (urllib.error.URLError, Exception) as err:
+            raise URLFetchException(str(err))
 
     def get_header(self, header_key):
         return self.response_headers.getheader(header_key)

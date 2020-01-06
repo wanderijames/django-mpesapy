@@ -3,7 +3,7 @@ import logging
 import xml.etree.ElementTree as ET
 from django.test import TestCase
 from django.test import Client
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 import mpesapy.models as mdl
 from mpesapy.mpesa import c2b, wsdl
 from mpesapy import tasks
@@ -27,7 +27,7 @@ class ModelsTestCase(TestCase):
         mdl.Business(
             number="54321",
             name="Company B ltd",
-            bnt=mdl.Business.C2B_TILL,
+            bnt=mdl.BusinessNumberTypesChoices.C2B_TILL,
             extra={"MERCHANT_ID": "2323EW",
                    "SERVICE_ID": "SDSS",
                    "SP_ID": "34354",
@@ -76,7 +76,7 @@ class ModelsTestCase(TestCase):
                 wsdl.WSDL), "r") as xml_file:
             content = xml_file.read()
             response = c.post(
-                path="/v2/validate/12345/c2b",
+                path="/mpesapy/v2/validate/12345/c2b",
                 data=content,
                 content_type="application/xml")
         self.assertEqual(response.status_code, 200)
@@ -95,7 +95,7 @@ class ModelsTestCase(TestCase):
                 wsdl.WSDL), "r") as xml_file:
             content = xml_file.read()
             response = c.post(
-                path="/v2/confirm/12345/c2b",
+                path="/mpesapy/v2/confirm/12345/c2b",
                 data=content,
                 content_type="application/xml")
         self.assertEqual(response.status_code, 200)

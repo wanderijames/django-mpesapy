@@ -1,9 +1,12 @@
 from __future__ import absolute_import
 
-from celery import shared_task
+try:
+    from celery import shared_task
+except ImportError:
+    pass
+
 from mpesapy.fetch import URLFetch
 from mpesapy.mpesa import c2b
-from mpesapi.celery import app
 
 
 @shared_task
@@ -51,9 +54,8 @@ def register_url(validation_url, confirmation_url, business_details, **kwargs):
     return c2b_obj.register_url_request(fetch.retrieve())
 
 
-@app.task(bind=True, max_retries=3, soft_time_limit=30,
-          time_limit=90, countdown=1)
-def ipn(self, mpesa_details, business_details):
+@shared_task
+def ipn(mpesa_details, business_details):
     """Use this to notify another service
 
     IPN - Instant Payment Notification

@@ -6,6 +6,10 @@ Mpesapy is a simple Django app that has been integrated with M-Pesa API.
 
 Detailed documentation is in the "docs" directory.
 
+Has been tested with Django 3+. Versions prior to 1.1.3 has been tested with Django==1.9.
+
+Checkout the latest code in the repo `wanderijames/django-mpesapy <https://github.com/wanderijames/django-mpesapy>`_.
+
 Quick start
 -----------
 

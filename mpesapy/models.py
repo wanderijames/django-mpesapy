@@ -11,6 +11,21 @@ from mpesapy.mpesa import (utils, conversion)
 import mpesapy.signals as sgn
 
 
+class BusinessNumberTypesChoices(models.TextChoices):
+    B2C = 'B2C', 'B2C'
+    B2B = 'B2B', 'B2B'
+    C2B_BILL = 'C2BB', 'C2B Paybill'
+    C2B_TILL = 'C2BT', 'C2B Till'
+    C2B_CHECKOUT = 'C2BC', 'C2B Checkout'
+
+
+class StatusChoices(models.TextChoices):
+    CONSUMED = 'CONS', 'Consumed'
+    DECLINED = 'HELD', 'Declined'
+    HELD = 'DECL', 'Held'
+    REJECTED = 'REJE', 'Rejected'
+
+
 class URLSafeField:
     """Creates URL safe identifiers
 
@@ -89,9 +104,6 @@ class MpesaRecords(FlatModel):
     class Meta:
         abstract = True
         app_label = "mpesapy"
-
-    def __unicode__(self):  # Python 3: def __str__(self):
-        return unicode("%s" % (self.mpesa_code))
 
     @classmethod
     def retrieve(cls, mpesa_code):
@@ -202,32 +214,18 @@ class RequestLogs(models.Model):
     def __str__(self):
         return "{}".format(self.path)
 
-    def __unicode__(self):  # Python 3: def __str__(self):
-        return unicode(self.__str__())
-
     def save(self, *args, **kwargs):
         super(RequestLogs, self).save(*args, **kwargs)
         return self
 
 
 class Business(models.Model):
-    B2C = "B2C",
-    B2B = "B2B"
-    C2B_BILL = "C2BB"
-    C2B_TILL = "C2BT"
-    C2B_CHECKOUT = "C2BC"
-    BUSINESS_NUMBER_TYPES = (
-        (B2C, "B2C"),
-        (B2B, "B2B"),
-        (C2B_BILL, "C2B Paybill"),
-        (C2B_TILL, "C2B Till"),
-        (C2B_CHECKOUT, "C2B Checkout")
-    )
+
     number = models.CharField(max_length=20, unique=True, db_index=True)
     name = models.CharField(max_length=100, null=True, blank=True)
     bnt = models.CharField(max_length=5, db_index=True,
-                           choices=BUSINESS_NUMBER_TYPES,
-                           default=C2B_BILL,
+                           choices=BusinessNumberTypesChoices.choices,
+                           default=BusinessNumberTypesChoices.C2B_BILL,
                            help_text="Business number type")
     extra = models.TextField(null=True, blank=True, help_text="important data")
     registered = models.BooleanField(
@@ -253,9 +251,6 @@ class Business(models.Model):
     def __str__(self):
         return "{}".format(self.number)
 
-    def __unicode__(self):  # Python 3: def __str__(self):
-        return unicode(self.__str__())
-
     def extra_data(self):
         return utils.plain2JSON(self.extra)
 
@@ -277,21 +272,16 @@ class Business(models.Model):
 
 
 class MpesaBase(models.Model):
-    CONSUMED = "CONS"
-    HELD = "HELD"
-    DECLINED = "DECL"
-    REJECTED = "REJE"
-    STATUS_CHOICES = (
-        (CONSUMED, "Consumed"), (HELD, "Held"),
-        (DECLINED, "Declined"), (REJECTED, "Rejected"))
-    business = models.ForeignKey(Business, related_name="mpesabase_business")
+
+    business = models.ForeignKey(
+        Business, related_name="mpesabase_business", on_delete=models.PROTECT)
     code = models.CharField(max_length=20, unique=True, db_index=True)
     amount = models.FloatField(max_length=100, null=True, blank=True)
     msisdn = models.CharField(max_length=150, null=True, blank=True)
     person = models.CharField(max_length=200, null=True, blank=True)
     status = models.CharField(max_length=5, db_index=True,
-                              choices=STATUS_CHOICES,
-                              default=HELD)
+                              choices=StatusChoices.choices,
+                              default=StatusChoices.HELD)
     extra = models.TextField(null=True, blank=True, help_text="important data")
     created = models.DateTimeField(null=True, blank=True, editable=False)
     updated = models.DateTimeField(null=True, blank=True, editable=False)
@@ -309,14 +299,10 @@ class MpesaBase(models.Model):
             else:
                 self.created = self.updated
         super(MpesaBase, self).save()
-        # print ipn.send(sender=self, dispatch_id=self.trans_id)
         return self
 
     def __str__(self):
         return "{}".format(self.code)
-
-    def __unicode__(self):  # Python 3: def __str__(self):
-        return unicode(self.__str__())
 
     def extra_data(self):
         return utils.plain2JSON(self.extra)
@@ -345,9 +331,6 @@ class APILog(FlatModel):
 
     def __str__(self):
         return "{}".format(self.ref)
-
-    def __unicode__(self):  # Python 3: def __str__(self):
-        return self.__str__()
 
     def save(self, *args, **kwargs):
         self.updated = utils.kenya_time()

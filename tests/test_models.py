@@ -19,7 +19,7 @@ class ModelsTestCase(TestCase):
             "Ksh{amount}.00 received from JOE DOE " \
             "2547200000000. Account Number 4545 New "\
             "Utility balance is Ksh{cumulative_amount}"
-        for i in xrange(1000):
+        for i in range(1000):
             if self._auth(user, passw):
                 id = str(i)
                 mpesa_code = "test" + id
@@ -48,7 +48,7 @@ class ModelsTestCase(TestCase):
         mdl.Business(
             number="54321",
             name="Company B ltd",
-            bnt=mdl.Business.C2B_TILL,
+            bnt=mdl.BusinessNumberTypesChoices.C2B_TILL,
             extra={"MERCHANT_ID": "2323EW",
                    "SERVICE_ID": "SDSS",
                    "user": "user2",

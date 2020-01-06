@@ -40,7 +40,7 @@ class C2B:
             "{}{}{}".format(
                 identifier,
                 password,
-                time_stamp)).hexdigest()
+                time_stamp).encode()).hexdigest().encode()
         return time_stamp, b64encode(hashed)
 
     def register_url(self, short_code, org_short_name,
