@@ -1,3 +1,5 @@
+"""Main app urls"""
+# pylint: disable=invalid-name
 from django.urls import (include, path)
 from mpesapy.v1 import views as ipn_views
 

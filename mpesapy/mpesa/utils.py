@@ -1,9 +1,10 @@
+"""App utilities"""
 import hashlib
 import base64
 import datetime
 
 
-def plain2JSON(text, delimeter="|"):
+def plain2JSON(text: str, delimeter: str = "|") -> dict:
     """Transforms a plain text into JSON
 
     The plain text should have key:value separated by a pipe.
@@ -25,38 +26,37 @@ def plain2JSON(text, delimeter="|"):
     """
     result = {}
     kvs = text.strip().split(delimeter)
-    kvs = filter(lambda x: x is not None, kvs)
-    kvs = [x.split(":", 1) for x in kvs]
+    kvs = [x.split(":", 1) for x in kvs if x is not None]
     for [key, value] in kvs:
         result[key] = value if value != "None" else ""
     return result
 
 
-def json2PLAIN(json, delimeter="|"):
+def json2PLAIN(json_data: dict, delimeter: str = "|") -> str:
     """Transforms JSON into a plain text
 
-    :param json: JSON object that needs to be converted to plain text
+    :param json_data: JSON object that needs to be converted to plain text
     :param delimeter: Delimeter to be used in the plain text
-    :type json: dict
+    :type json_data: dict
     :type delimeter: str
     :return: Plain text from JSON
     :rtype: str
 
     """
     kvs = []
-    for key, value in json.items():
+    for key, value in json_data.items():
         kvs.append("{}:{}".format(key, value))
     return delimeter.join(kvs)
 
 
-def kenya_time():
+def kenya_time() -> datetime.datetime:
+    """Get local time for mpesa"""
     return datetime.datetime.utcnow() + datetime.timedelta(hours=3)
 
 
-def encrypt_password(merchant_id, passkey):
+def encrypt_password(merchant_id: str, passkey: str) -> (str, ):
+    """Encrypted hash for mpesa apis"""
     timestamp = kenya_time().strftime("%Y%m%d%H%M%S")
-    hash = hashlib.sha256("{} {} {}".format(
-                                            merchant_id,
-                                            passkey,
-                                            timestamp)).upper()
-    return timestamp, base64.b64encode(hash)
+    plain_text = "{} {} {}".format(merchant_id, passkey, timestamp)
+    hashed_text = hashlib.sha256(plain_text.encode()).hexdigest().upper()
+    return timestamp, base64.b64encode(hashed_text)

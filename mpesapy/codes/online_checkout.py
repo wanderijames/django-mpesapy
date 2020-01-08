@@ -1,3 +1,5 @@
+"""Transaction codes for tha app"""
+# noqa
 codes = {
     "00": "The Request has been successfully received or the transaction has successfully completed.",
     "01": "Insufficient Funds on MSISDN account",

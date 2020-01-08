@@ -1,5 +1,6 @@
-from __future__ import absolute_import
-
+"""App models"""
+# pylint: disable=no-member, arguments-differ
+# pylint: disable=too-few-public-methods
 
 import random
 import datetime
@@ -12,6 +13,7 @@ import mpesapy.signals as sgn
 
 
 class BusinessNumberTypesChoices(models.TextChoices):
+    """Mpesa transaction types"""
     B2C = 'B2C', 'B2C'
     B2B = 'B2B', 'B2B'
     C2B_BILL = 'C2BB', 'C2B Paybill'
@@ -20,6 +22,7 @@ class BusinessNumberTypesChoices(models.TextChoices):
 
 
 class StatusChoices(models.TextChoices):
+    """Transaction status"""
     CONSUMED = 'CONS', 'Consumed'
     DECLINED = 'HELD', 'Declined'
     HELD = 'DECL', 'Held'
@@ -32,11 +35,11 @@ class URLSafeField:
     """
 
     @classmethod
-    def encrypt(cls, hash):
-        """Generates the URL safe identifier from the table column ID and salt
+    def encrypt(cls, row_id: str) -> str:
+        """Generates the URL safe identifier from the table row ID and salt
 
         Args:
-            hash(str): stringified table column ID
+            row_id(str): stringified table column ID
 
         Returns:
             str: The URL safe identifier
@@ -45,11 +48,11 @@ class URLSafeField:
             AssertError: If the table column ID is not stringified
 
         """
-        assert (type(hash) == str) and len(hash) > 0,\
+        assert isinstance(row_id, str) and row_id, \
             "Incorrect hash cannot be encrypted"
-        hash = "{}{}".format(hash, random.randint(1, 100))
-        sgn = Signer()
-        value = sgn.sign(hash)
+        hashed_row_id = "{}{}".format(row_id, random.randint(1, 100))
+        signer = Signer()
+        value = signer.sign(hashed_row_id)
         return value.split(":")[1]
 
 
@@ -63,23 +66,27 @@ class FlatModel(models.Model):
 
     @property
     def build_urlsafe(self):
+        """Generate urlsafe hash for the row id"""
         if self.urlsafe is not None:
             return self.urlsafe
-        else:
-            cryp = URLSafeField.encrypt(str(self.id))
-            self.urlsafe = cryp
-            self.save()
-            return str(cryp)
+
+        cryp = URLSafeField.encrypt(str(self.id))
+        self.urlsafe = cryp
+        self.save()
+        return str(cryp)
 
     class Meta:
+        """Making the parent class an abstract model"""
         abstract = True
         app_label = "mpesapy"
 
     def was_registered_recently(self):
+        """Check latest entity"""
         return self.registered_date >= timezone.now() - datetime.timedelta(
             days=1)
 
     def was_updated_recently(self):
+        """Check latest entity"""
         return self.updated_date >= timezone.now() - datetime.timedelta(days=1)
 
     was_updated_recently.admin_order_field = 'pub_date'
@@ -88,9 +95,9 @@ class FlatModel(models.Model):
 
 
 class MpesaRecords(FlatModel):
-    ipn_notification_id = models.CharField(max_length=20, null=True,
-                                           blank=True,
-                                           help_text="Notification ID")
+    """Store mpesa records"""
+    ipn_notification_id = models.CharField(
+        max_length=20, null=True, blank=True, help_text="Notification ID")
     text_message = models.CharField(max_length=200, null=True, blank=True)
     mpesa_code = models.CharField(max_length=20, unique=True, db_index=True)
     mpesa_amt = models.FloatField(max_length=100, null=True, blank=True)
@@ -102,25 +109,44 @@ class MpesaRecords(FlatModel):
     counter_checked = models.BooleanField(default=False)
 
     class Meta:
+        """Making the parent class an abstract model"""
         abstract = True
         app_label = "mpesapy"
 
+    def save(self, *args, **kwargs):
+        """Save logic for different scenarios"""
+        if self._state.adding:
+            chk = self.__class__.retrieve(mpesa_code=self.mpesa_code)
+            try:
+                return chk[0]
+            except IndexError:
+                pass
+            self.mpesa_amt = float(self.mpesa_amt)
+            super().save(*args, **kwargs)
+            return self
+
+        super().save(*args, **kwargs)
+        return self
+
     @classmethod
     def retrieve(cls, mpesa_code):
+        """Get entities with the code"""
         return cls.objects.filter(mpesa_code=mpesa_code)
 
     @classmethod
     def exists(cls, mpesa_code):
+        """Check if an mpesa transaction exists"""
         return len(cls.retrieve(mpesa_code)) > 0
 
     @classmethod
     def create_pull(cls, **kwargs):
+        """Retrieves records for a certain trsansaction"""
         if cls.exists(kwargs.get('mpesa_code')):
             return cls.retrieve(kwargs.get('mpesa_code'))[0]
-        else:
-            entity = cls(**kwargs).save()
-            entity.counter_checked = True
-            return entity.save()
+
+        entity = cls(**kwargs).save()
+        entity.counter_checked = True
+        return entity.save()
 
 
 class MpesaCtoBill(MpesaRecords):
@@ -137,23 +163,14 @@ class MpesaCtoBill(MpesaRecords):
     mpesa_trx_time = models.CharField(max_length=100)
 
     class Meta:
+        """Change the entity names in the admin"""
         verbose_name = "M-Pesa C2B"
         verbose_name_plural = "M-Pesa C2Bs"
         app_label = "mpesapy"
 
-    def save(self, *args, **kwargs):
-        if self._state.adding:
-            chk = MpesaCtoBill.retrieve(mpesa_code=self.mpesa_code)
-            if len(chk) > 0:
-                return chk[0]
-            self.mpesa_amt = float(self.mpesa_amt)
-            super(MpesaCtoBill, self).save(*args, **kwargs)
-            return self
-        super(MpesaCtoBill, self).save(*args, **kwargs)
-        return self
-
     @classmethod
     def create_push(cls, **kwargs):
+        """Create an instant notification"""
         if cls.exists(kwargs.get('mpesa_code')):
             entity = cls.retrieve(kwargs.get('mpesa_code'))[0]
             if not entity.ipn_notification_id:
@@ -169,30 +186,22 @@ class MpesaCtoBill(MpesaRecords):
                 entity.counter_checked = True
                 entity.save()
             return entity
-        else:
-            return cls(**kwargs).save()
+
+        return cls(**kwargs).save()
 
 
 class MpesaCtoBuy(MpesaRecords):
+    """Model for customers using c2b buy goods"""
 
     class Meta:
+        """CHanging the name of then entities in admin"""
         verbose_name = "M-Pesa C2Buy"
         verbose_name_plural = "M-Pesa C2Buys"
         app_label = "mpesapy"
 
-    def save(self, *args, **kwargs):
-        if self._state.adding:
-            chk = MpesaCtoBuy.objects.filter(mpesa_code=self.mpesa_code)
-            if len(chk) > 0:
-                return chk[0]
-            self.mpesa_amt = float(self.mpesa_amt)
-            super(MpesaCtoBuy, self).save(*args, **kwargs)
-            return self
-        super(MpesaCtoBuy, self).save(*args, **kwargs)
-        return self
-
     @classmethod
     def create_push(cls, **kwargs):
+        """IPN for the entries"""
         if cls.exists(kwargs.get('mpesa_code')):
             entity = cls.retrieve(kwargs.get('mpesa_code'))[0]
             if not entity.ipn_notification_id:
@@ -201,11 +210,12 @@ class MpesaCtoBuy(MpesaRecords):
                 entity.counter_checked = True
                 entity.save()
             return entity
-        else:
-            return cls(**kwargs).save()
+
+        return cls(**kwargs).save()
 
 
 class RequestLogs(models.Model):
+    """Model for http requests by mpesa"""
     path = models.CharField(max_length=100, help_text="Request path")
     body = models.TextField(help_text="Request body")
     created = models.DateTimeField(null=True, blank=True, editable=False)
@@ -215,11 +225,13 @@ class RequestLogs(models.Model):
         return "{}".format(self.path)
 
     def save(self, *args, **kwargs):
+        """To return the saved entity"""
         super(RequestLogs, self).save(*args, **kwargs)
         return self
 
 
 class Business(models.Model):
+    """Store business entity"""
 
     number = models.CharField(max_length=20, unique=True, db_index=True)
     name = models.CharField(max_length=100, null=True, blank=True)
@@ -236,6 +248,7 @@ class Business(models.Model):
     updated = models.DateTimeField(null=True, blank=True, editable=False)
 
     def save(self, *args, **kwargs):
+        """Save with custom logic to initate callback registration"""
         self.updated = utils.kenya_time()
         if isinstance(self.extra, dict):
             self.extra = utils.json2PLAIN(self.extra)
@@ -251,27 +264,33 @@ class Business(models.Model):
     def __str__(self):
         return "{}".format(self.number)
 
-    def extra_data(self):
+    def extra_data(self) -> dict:
+        """Return extra column of the entity as json"""
         return utils.plain2JSON(self.extra)
 
-    def short_name(self):
+    def short_name(self) -> str:
+        """Generate short name"""
         names = self.name.strip().split()
         return "".join([x[:1] for x in names])
 
-    def dispatch_uid(self):
+    def dispatch_uid(self) -> str:
+        """Generate id"""
         return "{}{}{}".format(
             self.__class__.__name__,
             self.id,
             random.randint(1, 10**5))
 
     def was_registered_recently(self):
+        """Check latest entity"""
         return self.created >= utils.kenya_time() - datetime.timedelta(days=1)
 
     def was_updated_recently(self):
+        """Check latest entity"""
         return self.updated >= utils.kenya_time() - datetime.timedelta(days=1)
 
 
 class MpesaBase(models.Model):
+    """Record the transactions"""
 
     business = models.ForeignKey(
         Business, related_name="mpesabase_business", on_delete=models.PROTECT)
@@ -287,9 +306,11 @@ class MpesaBase(models.Model):
     updated = models.DateTimeField(null=True, blank=True, editable=False)
 
     class Meta:
+        """Associate the model to the app"""
         app_label = "mpesapy"
 
     def save(self, *args, **kwargs):
+        """Save logic"""
         self.updated = utils.kenya_time()
         if isinstance(self.extra, dict):
             self.extra = utils.json2PLAIN(self.extra)
@@ -298,19 +319,22 @@ class MpesaBase(models.Model):
                 self.created = kwargs.get("created")
             else:
                 self.created = self.updated
-        super(MpesaBase, self).save()
+        super(MpesaBase, self).save(*args, **kwargs)
         return self
 
     def __str__(self):
         return "{}".format(self.code)
 
-    def extra_data(self):
+    def extra_data(self) -> dict:
+        """Return extra column of the entity as json"""
         return utils.plain2JSON(self.extra)
 
     def was_registered_recently(self):
+        """Check latest entity"""
         return self.created >= utils.kenya_time() - datetime.timedelta(days=1)
 
     def was_updated_recently(self):
+        """Check latest entity"""
         return self.updated >= utils.kenya_time() - datetime.timedelta(days=1)
 
     was_updated_recently.admin_order_field = 'pub_date'
@@ -327,12 +351,14 @@ class APILog(FlatModel):
     updated = models.DateTimeField(editable=False)
 
     class Meta:
+        """Associate the model to the app"""
         app_label = "mpesapy"
 
     def __str__(self):
         return "{}".format(self.ref)
 
     def save(self, *args, **kwargs):
+        """Saving entity logic"""
         self.updated = utils.kenya_time()
         if isinstance(self.extra, dict):
             self.extra = utils.json2PLAIN(self.extra)
@@ -345,7 +371,13 @@ class APILog(FlatModel):
         return self
 
     @classmethod
-    def create(cls, business_number, extra_data={}, **kwargs):
+    def create(
+            cls,
+            business_number: str,
+            extra_data: dict = None,
+            **kwargs):
+        """entity creator helper"""
+        extra_data = {} if extra_data is None else extra_data
         log = cls(**kwargs).save()
         log.ref = "{}.{}".format(
             business_number,
@@ -355,13 +387,16 @@ class APILog(FlatModel):
             log.extra = utils.json2PLAIN(extra_data)
         return log.save()
 
-    def extra_data(self):
+    def extra_data(self) -> dict:
+        """Return extra column of the entity as json"""
         return utils.plain2JSON(self.extra)
 
     def was_registered_recently(self):
+        """Check latest entity"""
         return self.created >= utils.kenya_time() - datetime.timedelta(days=1)
 
     def was_updated_recently(self):
+        """Check latest entity"""
         return self.updated >= utils.kenya_time() - datetime.timedelta(days=1)
 
     was_updated_recently.admin_order_field = 'pub_date'

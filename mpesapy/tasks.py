@@ -1,5 +1,4 @@
-from __future__ import absolute_import
-
+"""Celery tasks for the app"""
 try:
     from celery import shared_task
 except ImportError:
@@ -97,11 +96,14 @@ def ipn(mpesa_details, business_details):
 
 @shared_task
 def register_url_task(*args, **kwargs):
+    """Mpesa register URL task"""
     return register_url(*args, **kwargs)
 
 
 @shared_task
 def log_request(path, body, *args, **kwargs):
+    """Log requests asynchronously"""
+    # pylint: disable=unused-argument, no-member
     import mpesapy.models as mdl
     log = mdl.RequestLogs(path=path, body=body).save()
     return log.id

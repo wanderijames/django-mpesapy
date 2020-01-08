@@ -1,5 +1,5 @@
-from __future__ import absolute_import
-
+"""Signals for the app"""
+import logging
 import random
 from django.urls import reverse
 from django.conf import settings
@@ -8,7 +8,7 @@ import mpesapy.tasks as tsk
 
 def register_callback(sender, instance, **kwargs):
     """Callback for registering URL on the M-Pesa platform
-    
+
     **kwargs is Used to send any param=value pairs
 
     :param sender: The Model being affected
@@ -19,6 +19,7 @@ def register_callback(sender, instance, **kwargs):
     :rtype: tsk.register_url_task
 
     """
+    logging.info(str(sender))
     if not instance.registered and instance.register:
         host = getattr(settings, "MPESA_HOST_KEY", "http://")
         biz = instance
@@ -44,3 +45,4 @@ def register_callback(sender, instance, **kwargs):
             business_details,
             TEST=getattr(settings, "TEST", False))
         return response
+    return None

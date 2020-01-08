@@ -1,5 +1,8 @@
-import urllib
+"""HTTP call helpers"""
+# pylint
 import json
+import urllib
+from urllib.parse import urlencode
 
 
 class URLFetchException(Exception):
@@ -9,12 +12,14 @@ class URLFetchException(Exception):
 
 class URLFetch:
 
+    """Helper for calling HTTP"""
+
     def __init__(
             self,
             endpoint: str,
             http_method: str = "POST",
-            header: dict = {},
-            data: dict = {},
+            header: dict = None,
+            data: dict = None,
             **kwargs):
         """Initializes wih data for URL call
 
@@ -40,7 +45,7 @@ class URLFetch:
         elif "xml" in self.content_type:
             self.relay = data
         else:
-            self.relay = urllib.urlencode(data)
+            self.relay = urlencode(data)
         self.header = header
         self.response_headers = None
         self.options = kwargs
@@ -69,8 +74,8 @@ class URLFetch:
                 return json.loads(response_body)
             raise URLFetchException(
                 "{}: {}".format(response_code, response_body))
-        except urllib.error.HTTPError as e:
-            raise URLFetchException(str(e))
+        except urllib.error.HTTPError as err:
+            raise URLFetchException(str(err))
         except (urllib.error.URLError, Exception) as err:
             raise URLFetchException(str(err))
 
