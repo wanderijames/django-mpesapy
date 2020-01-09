@@ -1,7 +1,6 @@
 """I got this module from the internet, I can't remember who wrote it
 
 """
-__credits = "Not me"
 
 BASE2 = "01"
 BASE10 = "0123456789"
@@ -21,63 +20,64 @@ def baseconvert(number, fromdigits, todigits):
     signs are passed through.
 
     decimal to binary
-    >>> baseconvert(555,BASE10,BASE2)
+    >>> baseconvert(555, BASE10, BASE2)
     '1000101011'
 
     binary to decimal
-    >>> baseconvert('1000101011',BASE2,BASE10)
+    >>> baseconvert('1000101011', BASE2, BASE10)
     '555'
 
     integer interpreted as binary and converted to decimal (!)
-    >>> baseconvert(1000101011,BASE2,BASE10)
+    >>> baseconvert(1000101011, BASE2, BASE10)
     '555'
 
     base10 to base4
-    >>> baseconvert(99,BASE10,"0123")
+    >>> baseconvert(99, BASE10, "0123")
     '1203'
 
     base4 to base5 (with alphabetic digits)
-    >>> baseconvert(1203,"0123","abcde")
+    >>> baseconvert(1203, "0123", "abcde")
     'dee'
 
     base5, alpha digits back to base 10
-    >>> baseconvert('dee',"abcde",BASE10)
+    >>> baseconvert('dee',"abcde", BASE10)
     '99'
 
     decimal to a base that uses A-Z0-9a-z for its digits
-    >>> baseconvert(257938572394L,BASE10,BASE62)
+    >>> baseconvert(257938572394, BASE10,BASE62)
     'E78Lxik'
 
     ..convert back
-    >>> baseconvert('E78Lxik',BASE62,BASE10)
+    >>> baseconvert('E78Lxik', BASE62,BASE10)
     '257938572394'
 
     binary to a base with words for digits (the function cannot convert this back)
-    >>> baseconvert('1101',BASE2,('Zero','One'))
+    >>> baseconvert('1101', BASE2,('Zero','One'))
     'OneOneZeroOne'
 
     """
+    num_str = str(number)
 
-    if str(number)[0] == '-':
-        number = str(number)[1:]
+    if num_str.startswith("-"):
+        number = num_str[1:]
         neg = 1
     else:
         neg = 0
 
     # make an integer out of the number
-    x = 0
+    num_int = 0
     for digit in str(number):
-        x = x * len(fromdigits) + fromdigits.index(digit)
+        num_int = num_int * len(fromdigits) + fromdigits.index(digit)
 
     # create the result in base 'len(todigits)'
-    if x == 0:
+    if num_int == 0:
         res = todigits[0]
     else:
         res = ""
-        while x > 0:
-            digit = x % len(todigits)
+        while num_int > 0:
+            digit = num_int % len(todigits)
             res = todigits[digit] + res
-            x = int(x / len(todigits))
+            num_int = int(num_int / len(todigits))
         if neg:
             res = "-" + res
 

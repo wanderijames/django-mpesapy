@@ -99,8 +99,7 @@ def c2b_buy_goods(request):
                 mpesa_msisdn=mpesa_msisdn,
                 mpesa_sender=mpesa_sender,
                 mpesa_amt=mpesa_amt)
-        except Exception as err:
-            print(str(err))
+        except IndexError:
             MpesaCtoBuy(
                 ipn_notification_id=data.get("id"),
                 text_message=data.get("text"),

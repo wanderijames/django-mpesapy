@@ -4,7 +4,7 @@ import base64
 import datetime
 
 
-def plain2JSON(text: str, delimeter: str = "|") -> dict:
+def to_json(text: str, delimeter: str = "|") -> dict:
     """Transforms a plain text into JSON
 
     The plain text should have key:value separated by a pipe.
@@ -32,7 +32,7 @@ def plain2JSON(text: str, delimeter: str = "|") -> dict:
     return result
 
 
-def json2PLAIN(json_data: dict, delimeter: str = "|") -> str:
+def from_json(json_data: dict, delimeter: str = "|") -> str:
     """Transforms JSON into a plain text
 
     :param json_data: JSON object that needs to be converted to plain text

@@ -1,3 +1,4 @@
+"""Customer to Business (C2B) logic"""
 from datetime import datetime
 from base64 import b64encode
 import hashlib
@@ -12,16 +13,20 @@ from .wsdl import (
 
 
 class C2B:
+    """Customer to Business helpers"""
     reference_id = None
     result_code = None
 
-    def _find(self, element, tag):
+    @staticmethod
+    def _find(element, tag):
+        """Get text from an XML using its tag"""
         relement = element.find(tag)
         if isinstance(relement, Element):
             return relement.text
         return ""
 
-    def enc_password(self, identifier, password):
+    @staticmethod
+    def enc_password(identifier, password):
         """Used to construct sp_password used in authentification
         within M-Pesa broker
 
@@ -34,8 +39,7 @@ class C2B:
         :rtype: tuple
 
         """
-        nw = kenya_time()
-        time_stamp = nw.strftime("%Y%m%d%H%M%S")
+        time_stamp = kenya_time().strftime("%Y%m%d%H%M%S")
         hashed = hashlib.sha256(
             "{}{}{}".format(
                 identifier,
@@ -43,9 +47,12 @@ class C2B:
                 time_stamp).encode()).hexdigest().encode()
         return time_stamp, b64encode(hashed)
 
-    def register_url(self, short_code, org_short_name,
+    @staticmethod
+    def register_url(short_code, org_short_name,
                      request_id, validation_url, confirmation_url,
                      sp_id, sp_password, time_stamp, service_id):
+        """Build url for registering our mpesa endpoint"""
+        # pylint: disable=too-many-arguments
         return REGISTER_URL.format(
             short_code=short_code, org_short_name=org_short_name,
             request_id=request_id, validation_url=validation_url,
@@ -53,13 +60,17 @@ class C2B:
             sp_password=sp_password, time_stamp=time_stamp,
             service_id=service_id)
 
-    def register_url_request(self, in_xml):
+    @staticmethod
+    def register_url_request(in_xml) -> dict:
+        """extract data from register-url request response"""
         result = {}
         root = ET.fromstring(in_xml)
-        ns = {"soapenv": "http://schemas.xmlsoap.org/soap/envelope/",
-              "req": "http://api-v1.gen.mm.vodafone.com/mminterface/request"}
-        for child in root.findall("soapenv:Body", ns):
-            element = child.find("req:ResponseMsg", ns).text
+        namespace_ = {
+            "soapenv": "http://schemas.xmlsoap.org/soap/envelope/",
+            "req": "http://api-v1.gen.mm.vodafone.com/mminterface/request"
+        }
+        for child in root.findall("soapenv:Body", namespace_):
+            element = child.find("req:ResponseMsg", namespace_).text
             response_code = re.search("<ResponseCode>.*</ResponseCode>",
                                       element)
             response_desc = re.search("<ResponseDesc>.*</ResponseDesc>",
@@ -77,24 +88,34 @@ class C2B:
                     service_status.group(0)).text
         return result
 
-    def confirmation_result(self, reference_id):
+    @staticmethod
+    def confirmation_result(reference_id: str) -> str:
+        """confirmation receipt xml"""
         return C2B_PAYMENT_CONFIRMATION_RESULT.format(
             reference_id=reference_id)
 
-    def validation_result(self, reference_id, result_code=0, result_desc=""):
+    @staticmethod
+    def validation_result(
+            reference_id: str,
+            result_code: int = 0,
+            result_desc: str = "") -> str:
+        """validation result xml"""
         return C2B_PAYMENT_VALIDATION_RESULT.format(
             reference_id=reference_id,
             result_desc=result_desc,
             result_code=result_code)
 
-    def validation_request(self, in_xml):
+    def validation_request(self, in_xml: str) -> dict:
+        """Extract data from validation request response"""
         result = {}
         root = ET.fromstring(in_xml)
-        ns = {"soapenv": "http://schemas.xmlsoap.org/soap/envelope/",
-              "c2b": "http://cps.huawei.com/cpsinterface/c2bpayment"}
-        for child in root.findall("soapenv:Body", ns):
+        namespace_ = {
+            "soapenv": "http://schemas.xmlsoap.org/soap/envelope/",
+            "c2b": "http://cps.huawei.com/cpsinterface/c2bpayment"
+        }
+        for child in root.findall("soapenv:Body", namespace_):
             checkout_element = child.find(
-                "c2b:C2BPaymentValidationRequest", ns)
+                "c2b:C2BPaymentValidationRequest", namespace_)
             result["transaction_type"] = self._find(
                 checkout_element, "TransType")
             result["trans_id"] = self._find(
@@ -117,14 +138,17 @@ class C2B:
                 checkout_element, "MSISDN")
         return result
 
-    def confirmation_request(self, in_xml):
+    def confirmation_request(self, in_xml: str) -> dict:
+        """Extract data from confirmation request response"""
         result = {}
         root = ET.fromstring(in_xml)
-        ns = {"soapenv": "http://schemas.xmlsoap.org/soap/envelope/",
-              "c2b": "http://cps.huawei.com/cpsinterface/c2bpayment"}
-        for child in root.findall("soapenv:Body", ns):
+        namespace_ = {
+            "soapenv": "http://schemas.xmlsoap.org/soap/envelope/",
+            "c2b": "http://cps.huawei.com/cpsinterface/c2bpayment"
+        }
+        for child in root.findall("soapenv:Body", namespace_):
             checkout_element = child.find(
-                "c2b:C2BPaymentConfirmationRequest", ns)
+                "c2b:C2BPaymentConfirmationRequest", namespace_)
             result["transaction_type"] = self._find(
                 checkout_element, "TransType")
             result["trans_id"] = self._find(

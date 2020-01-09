@@ -251,7 +251,7 @@ class Business(models.Model):
         """Save with custom logic to initate callback registration"""
         self.updated = utils.kenya_time()
         if isinstance(self.extra, dict):
-            self.extra = utils.json2PLAIN(self.extra)
+            self.extra = utils.from_json(self.extra)
         if self._state.adding:
             self.created = self.updated
         super(Business, self).save(*args, **kwargs)
@@ -266,7 +266,7 @@ class Business(models.Model):
 
     def extra_data(self) -> dict:
         """Return extra column of the entity as json"""
-        return utils.plain2JSON(self.extra)
+        return utils.to_json(self.extra)
 
     def short_name(self) -> str:
         """Generate short name"""
@@ -313,7 +313,7 @@ class MpesaBase(models.Model):
         """Save logic"""
         self.updated = utils.kenya_time()
         if isinstance(self.extra, dict):
-            self.extra = utils.json2PLAIN(self.extra)
+            self.extra = utils.from_json(self.extra)
         if self._state.adding:
             if kwargs.get("created"):
                 self.created = kwargs.get("created")
@@ -327,7 +327,7 @@ class MpesaBase(models.Model):
 
     def extra_data(self) -> dict:
         """Return extra column of the entity as json"""
-        return utils.plain2JSON(self.extra)
+        return utils.to_json(self.extra)
 
     def was_registered_recently(self):
         """Check latest entity"""
@@ -361,7 +361,7 @@ class APILog(FlatModel):
         """Saving entity logic"""
         self.updated = utils.kenya_time()
         if isinstance(self.extra, dict):
-            self.extra = utils.json2PLAIN(self.extra)
+            self.extra = utils.from_json(self.extra)
         if self._state.adding:
             if kwargs.get("created"):
                 self.created = kwargs.get("created")
@@ -384,12 +384,12 @@ class APILog(FlatModel):
             conversion.baseconvert(log.id, conversion.BASE10,
                                    conversion.BASE62))
         if extra_data:
-            log.extra = utils.json2PLAIN(extra_data)
+            log.extra = utils.from_json(extra_data)
         return log.save()
 
     def extra_data(self) -> dict:
         """Return extra column of the entity as json"""
-        return utils.plain2JSON(self.extra)
+        return utils.to_json(self.extra)
 
     def was_registered_recently(self):
         """Check latest entity"""
