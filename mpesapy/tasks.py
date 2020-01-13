@@ -54,7 +54,7 @@ def register_url(validation_url, confirmation_url, business_details, **kwargs):
 
 
 @shared_task
-def ipn(mpesa_details, business_details):
+def ipn(mpesa_details, business_details, is_testing=False):
     """Use this to notify another service
 
     IPN - Instant Payment Notification
@@ -91,6 +91,8 @@ def ipn(mpesa_details, business_details):
         "ipnkey": apikey}
     data.update(mpesa_details)
     fetch = URLFetch(endpoint, data=data, return_type="text/plain")
+    if is_testing:
+        return "OK"
     return fetch.retrieve()
 
 

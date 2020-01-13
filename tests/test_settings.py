@@ -31,6 +31,8 @@ DATABASES = {
     }
 }
 
+TESTING = True
+
 
 STATIC_URL = '/static/'
 

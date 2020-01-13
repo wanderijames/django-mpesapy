@@ -10,5 +10,4 @@ class MpesaConfig(AppConfig):
     name = 'mpesapy'
 
     def ready(self):
-        from mpesapy import signals
-        print(signals)
+        from mpesapy import signals  # NOQA

@@ -2,6 +2,7 @@
 # pylint: disable=broad-except,unused-argument
 # pylint: disable=no-member,inconsistent-return-statements,
 import logging
+from django.conf import settings
 from django.http import HttpResponse
 from django.db import IntegrityError
 from django.views.decorators.csrf import csrf_exempt
@@ -143,10 +144,10 @@ def c2b_confirmation(request, *args, **kwargs):
             ).save(created=data.get("trans_time"))
             result_code = rec.code
             tasks.ipn.apply_async(
-                (data, biz.extra_data()),
+                (data, biz.extra_data(), getattr(settings, "TESTING", False)),
                 task_id=data["trans_id"],
                 max_retries=3, soft_time_limit=30,
-                time_limit=90, countdown=1
+                time_limit=90, countdown=1,
             )
         except IntegrityError:
             pass

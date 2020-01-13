@@ -41,9 +41,11 @@ class URLFetch:
         self.endpoint = endpoint
         self.content_type = header.get("Content-Type")
         if "json" in self.content_type:
-            self.relay = json.dumps(data).encode()
+            self.relay = json.dumps(data)
         elif "xml" in self.content_type:
-            self.relay = data.encode()
+            self.relay = data
+        elif http_method.upper() == "POST":
+            self.relay = json.dumps(data).encode()
         else:
             self.relay = urlencode(data)
         self.header = header
@@ -77,7 +79,7 @@ class URLFetch:
         except urllib.error.HTTPError as err:
             raise URLFetchException(str(err))
         except (urllib.error.URLError, Exception) as err:
-            raise URLFetchException(str(err).encode)
+            raise URLFetchException(str(err))
 
     def get_header(self, header_key: str) -> str:
         """Get header value by key"""

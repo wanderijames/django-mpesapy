@@ -2,7 +2,7 @@
 source = mpesapy
 disable_warnings = already-imported
 omit =
-    */migrations
+    mpesapy/migrations/*
 
 [report]
 # Regexes for lines to exclude from consideration
@@ -24,7 +24,7 @@ exclude_lines =
 
 ignore_errors = True
 omit =
-    */migrations
+    mpesapy/migrations/*
 
 [html]
 directory = coverage_html_report
