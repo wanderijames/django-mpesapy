@@ -22,7 +22,7 @@ jobs:
           name: Run Tests
           command: |
             docker build -t wanderijames/django-mpesapy .
-            docker run -t --rm --name tests --volume=$(pwd):/usr/local/lib/django-mpesapy wanderijames/django-mpesapy bash -c "cd /usr/local/lib/django-sendpdf && tox"
+            docker run -t --rm --name tests --volume=$(pwd):/usr/local/lib/django-mpesapy wanderijames/django-mpesapy bash -c "cd /usr/local/lib/django-mpesapy && tox"
 
 workflows:
   version: 2
