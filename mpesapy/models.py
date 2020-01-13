@@ -1,6 +1,7 @@
 """App models"""
 # pylint: disable=no-member, arguments-differ
 # pylint: disable=too-few-public-methods
+# pylint: disable=cyclic-import
 
 import random
 import datetime
@@ -316,7 +317,7 @@ class MpesaBase(models.Model):
             self.extra = utils.from_json(self.extra)
         if self._state.adding:
             if kwargs.get("created"):
-                self.created = kwargs.get("created")
+                self.created = kwargs.pop("created")
             else:
                 self.created = self.updated
         super(MpesaBase, self).save(*args, **kwargs)

@@ -39,7 +39,8 @@ def register_callback(sender, instance, **kwargs):
         business_details["SERVICE_ID"] = extra.get("SERVICE_ID")
         business_details["name"] = short_name
         business_details["SP_PASS"] = extra.get("SP_PASS")
-        business_details["request_id"] = kwargs.get("request_id", random.randint(1, 10**5))
+        business_details["request_id"] = kwargs.get(
+            "request_id", random.randint(1, 10**5))
         response = tsk.register_url.delay(
             validation_url, confirmation_url,
             business_details,

@@ -2,14 +2,14 @@ version: 2.1
 
 executors:
   basic-executor:
-    working_directory: ~/circleci-django-sendpdf
+    working_directory: ~/circleci-django-mpesapy
     machine:
       image: circleci/classic:201808-01
 
 aliases:
   - &step_attach_workspace
     attach_workspace:
-      at: ~/circleci-django-sendpdf/tmp
+      at: ~/circleci-django-mpesapy/tmp
 
 jobs:
   build:
@@ -21,7 +21,8 @@ jobs:
       - run:
           name: Run Tests
           command: |
-            docker run -t --rm --name tests --volume=$(pwd):/usr/local/lib/django-sendpdf wanderijames/django-sendpdf bash -c "cd /usr/local/lib/django-sendpdf && tox"
+            docker build -t wanderijames/django-mpesapy .
+            docker run -t --rm --name tests --volume=$(pwd):/usr/local/lib/django-mpesapy wanderijames/django-mpesapy bash -c "cd /usr/local/lib/django-sendpdf && tox"
 
 workflows:
   version: 2

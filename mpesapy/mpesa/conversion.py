@@ -51,7 +51,8 @@ def baseconvert(number, fromdigits, todigits):
     >>> baseconvert('E78Lxik', BASE62,BASE10)
     '257938572394'
 
-    binary to a base with words for digits (the function cannot convert this back)
+    binary to a base with words for digits
+    (the function cannot convert this back)
     >>> baseconvert('1101', BASE2,('Zero','One'))
     'OneOneZeroOne'
 

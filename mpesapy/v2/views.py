@@ -1,3 +1,6 @@
+"""Views for the sub app"""
+# pylint: disable=broad-except,unused-argument
+# pylint: disable=no-member,inconsistent-return-statements,
 import logging
 from django.http import HttpResponse
 from django.db import IntegrityError
@@ -9,10 +12,11 @@ from mpesapy.mpesa import c2b as cb
 from mpesapy import tasks
 
 # Get an instance of a logger
-logger = logging.getLogger(__name__)
+LOGGER = logging.getLogger(__name__)
 
 
 def response(data):
+    """Build response"""
     return HttpResponse(data, content_type="text/xml")
 
 
@@ -46,7 +50,6 @@ def authenticate(url_biz, xml_biz, user=None, password=None):
         return business
     except mdl.Business.DoesNotExist:
         print("does not exist")
-        pass
 
 
 @csrf_exempt
@@ -66,8 +69,8 @@ def c2b_validation(request, *args, **kwargs):
     try:
         data = c2b.validation_request(body)
     except Exception as err:
-        logger.exception(str(err))
-        logger.info(body)
+        LOGGER.exception(str(err))
+        LOGGER.info(body)
         return response(
             c2b.validation_result(
                 "C2B00016", "C2B00016", "Unknown error occurred"))
@@ -114,8 +117,8 @@ def c2b_confirmation(request, *args, **kwargs):
     try:
         data = c2b.confirmation_request(body)
     except Exception as err:
-        logger.exception(str(err))
-        logger.info(body)
+        LOGGER.exception(str(err))
+        LOGGER.info(body)
         return response(
             c2b.confirmation_result("000000"))
     biz = authenticate(

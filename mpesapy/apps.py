@@ -11,3 +11,4 @@ class MpesaConfig(AppConfig):
 
     def ready(self):
         from mpesapy import signals
+        print(signals)

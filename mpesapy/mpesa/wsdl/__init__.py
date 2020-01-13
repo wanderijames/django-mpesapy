@@ -1,3 +1,4 @@
+"""Sample XML for the app"""
 import os
 
 WSDL = os.path.dirname(os.path.abspath(__file__))
@@ -11,7 +12,7 @@ C2B_PAYMENT_CONFIRMATION_RESULT = """
 		<c2b:C2BPaymentConfirmationResult>C2B Payment Transaction {reference_id} result received.</c2b:C2BPaymentConfirmationResult>
 	</soapenv:Body>
 </soapenv:Envelope>
-"""
+"""  # NOQA
 
 C2B_PAYMENT_VALIDATION_RESULT = """
 <soapenv:Envelope
